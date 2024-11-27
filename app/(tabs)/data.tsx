@@ -28,7 +28,7 @@ Notifications.setNotificationHandler({
     shouldSetBadge: true,
   }),
 });
-
+export const CO = 20;
 export default function TabTwoScreen() {
   const [expoPushToken, setExpoPushToken] = useState("");
   const [channels, setChannels] = useState<Notifications.NotificationChannel[]>(
@@ -73,6 +73,10 @@ export default function TabTwoScreen() {
   const [data, setData] = useState([
     {
       temperature: 0,
+      CO: 0,
+      CO2: 0,
+      tVOCs: 0,
+      humidity: 0,
     },
   ]);
 
