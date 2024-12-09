@@ -12,6 +12,7 @@ import { ThemedView } from "@/components/ThemedView";
 
 import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
+import React from "react";
 
 const supabaseUrl = "https://tcqqxpqljcgomltovqeo.supabase.co";
 const supabaseKey =
@@ -81,15 +82,21 @@ export default function HomeScreen() {
       // @ts-expect-error
       else setData(data[0]);
       // @ts-expect-error
-      if (data.CO2 >= 1000) {
+      if (data[0].CO2 >= 1000) {
         errors.push(
           "High CO2, you may suffer from : \n- dizziness \n- headache\n- nausea \n- increased heart rate\n- loss of attention "
         );
       }
       // @ts-expect-error
-      if (data.CO >= 15) {
+      if (data[0].CO >= 15) {
         errors.push(
           "High CO, you may suffer from : \n- loss of muscle control \n- sleepiness\n- confusion \n- redness of skin\n- chest tightness "
+        );
+      }
+      // @ts-expect-error
+      if (data[0].tVOCs >= 400) {
+        errors.push(
+          "tVOCs are very high, you may suffer after some period of time from : \n- nausea \n- emesis\n- epistaxis \n- fatigue\n- dizziness\n- dyspnea\n- eye, nose, throat irritation  "
         );
       }
       if (errors.length >= 1) {
@@ -121,19 +128,19 @@ export default function HomeScreen() {
             console.log(data);
             let errors = [];
             // @ts-expect-error
-            if (data.CO2 >= 1000) {
+            if (data[0].CO2 >= 1000) {
               errors.push(
                 "High CO2, you may suffer from : \n- dizziness \n- headache\n- nausea \n- increased heart rate\n- loss of attention "
               );
             }
             // @ts-expect-error
-            if (data.CO >= 15) {
+            if (data[0].CO >= 15) {
               errors.push(
                 "High CO, you may suffer from : \n- loss of muscle control \n- sleepiness\n- confusion \n- redness of skin\n- chest tightness "
               );
             }
             // @ts-expect-error
-            if (data.tVOCs >= 400) {
+            if (data[0].tVOCs >= 400) {
               errors.push(
                 "tVOCs are very high, you may suffer after some period of time from : \n- nausea \n- emesis\n- epistaxis \n- fatigue\n- dizziness\n- dyspnea\n- eye, nose, throat irritation  "
               );
@@ -158,11 +165,10 @@ export default function HomeScreen() {
       headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
       headerImage={
         <Image
-          source={require("D:\\app21323\\vexed\\assets\\images\\2151196376.jpg")}
+          source={require("../../assets/images/2151196376.jpg")}
           style={styles.reactLogo}
         />
-      }
-    >
+      }>
       <></>
       <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">

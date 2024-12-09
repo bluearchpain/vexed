@@ -1,35 +1,24 @@
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { StyleSheet, Image, Platform, View, Text } from "react-native";
+import { Image, StyleSheet, Platform, Text, View } from "react-native";
+import { CartesianChart, Line } from "victory-native";
 
-import { Collapsible } from "@/components/Collapsible";
-import { ExternalLink } from "@/components/ExternalLink";
+import { useEffect, useRef, useState } from "react";
+
+import { createClient } from "@supabase/supabase-js";
+
+import { HelloWave } from "@/components/HelloWave";
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { ThemedText } from "@/components/ThemedText";
 import { ThemedView } from "@/components/ThemedView";
 
-import DataGraph from "@/components/dataGraph";
-
-import { useFont } from "@shopify/react-native-skia";
-
-import { useEffect, useRef, useState } from "react";
-import { createClient } from "@supabase/supabase-js";
 import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
+import React from "react";
 
 const supabaseUrl = "https://tcqqxpqljcgomltovqeo.supabase.co";
 const supabaseKey =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRjcXF4cHFsamNnb21sdG92cWVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzA5MTMxODUsImV4cCI6MjA0NjQ4OTE4NX0.ibQcNfH7vPF-a92_WGoz_f4X9r81xwbRH3MYXW7OHKs";
 const supabase = createClient(supabaseUrl, supabaseKey);
-
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
-export const CO = 20;
-export default function TabTwoScreen() {
+export default function HomeScreen() {
   const [expoPushToken, setExpoPushToken] = useState("");
   const [channels, setChannels] = useState<Notifications.NotificationChannel[]>(
     []
@@ -70,15 +59,13 @@ export default function TabTwoScreen() {
     };
   }, []);
 
-  const [data, setData] = useState([
-    {
-      temperature: 0,
-      CO: 0,
-      CO2: 0,
-      tVOCs: 0,
-      humidity: 0,
-    },
-  ]);
+  const [data, setData] = useState({
+    temperature: 0,
+    CO: 0,
+    CO2: 0,
+    tVOCs: 0,
+    humidity: 0,
+  });
 
   useEffect(() => {
     // schedulePushNotification();
@@ -87,11 +74,28 @@ export default function TabTwoScreen() {
         .from("data")
         .select()
         .order("created_at", { ascending: false })
-        .limit(10);
+        .limit(1);
+
+      let errors = [];
 
       if (error) console.log(error);
       // @ts-expect-error
-      else setData(data?.reverse());
+      else setData(data[0]);
+      // @ts-expect-error
+      if (data.CO2 >= 1000) {
+        errors.push(
+          "High CO2, you may suffer from : \n- dizziness \n- headache\n- nausea \n- increased heart rate\n- loss of attention "
+        );
+      }
+      // @ts-expect-error
+      if (data.CO >= 15) {
+        errors.push(
+          "High CO, you may suffer from : \n- loss of muscle control \n- sleepiness\n- confusion \n- redness of skin\n- chest tightness "
+        );
+      }
+      if (errors.length >= 1) {
+        schedulePushNotification(errors.join(", "));
+      }
       console.log(data);
     };
 
@@ -100,7 +104,7 @@ export default function TabTwoScreen() {
 
   useEffect(() => {
     const STR3 = supabase
-      .channel("STR3")
+      .channel("STR33")
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "data" },
@@ -110,24 +114,30 @@ export default function TabTwoScreen() {
               .from("data")
               .select()
               .order("created_at", { ascending: false })
-              .limit(10);
+              .limit(1);
 
             if (error) console.log(error);
             // @ts-expect-error
-            else setData(data?.reverse());
+            else setData(data[0]);
             console.log(data);
             let errors = [];
             // @ts-expect-error
-            if (data[data.length - 1].CO2 >= 2200) {
-              errors.push("high co2 concentration detected");
+            if (data.CO2 >= 1000) {
+              errors.push(
+                "High CO2, you may suffer from : \n- dizziness \n- headache\n- nausea \n- increased heart rate\n- loss of attention "
+              );
             }
             // @ts-expect-error
-            if (data[data.length - 1].CO >= 25) {
-              errors.push("high co concentration detected");
+            if (data.CO >= 15) {
+              errors.push(
+                "High CO, you may suffer from : \n- loss of muscle control \n- sleepiness\n- confusion \n- redness of skin\n- chest tightness "
+              );
             }
             // @ts-expect-error
-            if (data[data.length - 1].tVOCs >= 2500) {
-              errors.push("high tVOCs concentration detected");
+            if (data.tVOCs >= 400) {
+              errors.push(
+                "tVOCs are very high, you may suffer after some period of time from : \n- nausea \n- emesis\n- epistaxis \n- fatigue\n- dizziness\n- dyspnea\n- eye, nose, throat irritation  "
+              );
             }
             if (errors.length >= 1) {
               schedulePushNotification(errors.join(", "));
@@ -144,41 +154,59 @@ export default function TabTwoScreen() {
     };
   }, []);
 
-  const font = useFont(
-    require("D:\\app21323\\vexed\\assets\\fonts\\Roboto-Regular.ttf"),
-    16
-  );
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: "#D0D0D0", dark: "#353636" }}
+      headerBackgroundColor={{ light: "#A1CEDC", dark: "#1D3D47" }}
       headerImage={
         <Image
-          source={require("D:\\app21323\\vexed\\assets\\images\\2150858399.jpg")}
+          source={require("D:\\app21323\\vexed\\assets\\images\\2151196376.jpg")}
           style={styles.reactLogo}
         />
-      }
-    >
+      }>
+      <></>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Sensor Data</ThemedText>
+        <ThemedText type="title">
+          Welcome! {"\n"}
+          <Text style={{ fontSize: 33, fontFamily: "Roboto" }}>User</Text>
+        </ThemedText>
+        <HelloWave />
       </ThemedView>
+      <View>
+        <Text style={styles.bodytexxxt}>
+          welcome to your smart CO2 and VOC's monitoring system.
+        </Text>
+      </View>
+      <View style={styles.mywolf}>
+        <Text style={styles.mywolftext}>
+          {data.CO > 15
+            ? "High CO, you may suffer from : \n- loss of muscle control \n- sleepiness\n- confusion \n- redness of skin\n- chest tightness "
+            : "Normal CO"}
+        </Text>
 
-      {/* start graphs */}
-      <DataGraph label="temperature" color="red" unit="°C" data={data} />
-      <DataGraph label="humidity" color="blue" unit="%" data={data} />
-      <DataGraph label="CO2" color="green" unit="ppm" data={data} />
-      <DataGraph label="CO" color="purple" unit="ppm" data={data} />
-      <DataGraph label="tVOCs" color="cyan" unit="ppm" data={data} />
-      {/* end graphs */}
+        <Text style={styles.mywolftext}>
+          {data.CO2 > 1000
+            ? "High CO2, you may suffer from : \n- dizziness \n- headache\n- nausea \n- increased heart rate\n- loss of attention "
+            : "Normal CO2"}
+        </Text>
+        <Text style={[styles.mywolftext, { borderBottomWidth: 0 }]}>
+          {data.tVOCs > 400
+            ? "tVOCs are very high, you may suffer after some period of time from : \n- nausea \n- emesis\n- epistaxis \n- fatigue\n- dizziness\n- dyspnea\n- eye, nose, throat irritation"
+            : "Normal tVOCs"}
+        </Text>
+      </View>
     </ParallaxScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: "#808080",
-    bottom: -90,
-    left: -35,
-    position: "absolute",
+  titleContainer: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 8,
+  },
+  stepContainer: {
+    gap: 8,
+    marginBottom: 8,
   },
   reactLogo: {
     height: "100%",
@@ -187,9 +215,24 @@ const styles = StyleSheet.create({
     left: 0,
     position: "absolute",
   },
-  titleContainer: {
-    flexDirection: "row",
-    gap: 8,
+  bodytexxxt: {
+    fontSize: 22,
+    color: "white",
+    // fontFamily:"SamsungSans"
+  },
+  mywolf: {
+    backgroundColor: "#205550",
+    paddingHorizontal: 20,
+    paddingVertical: 0,
+    borderRadius: 25,
+  },
+  mywolftext: {
+    color: "white",
+    fontSize: 18,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "white",
+    paddingVertical: 10,
+    lineHeight: 25,
   },
 });
 async function schedulePushNotification(body: string) {
